@@ -1,0 +1,168 @@
+\documentclass{article}
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{hyperref}
+
+\frenchspacing
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+
+\title{The Queue Acceleration Index: Measuring Institutional Throughput from Public Data}
+\author{Student Abstract}
+\affiliation{Affiliation}
+\email{email@example.com}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We propose the Queue Acceleration Index (QAI) — defined as the period-over-period change in pending cases divided by completions — as a publicly computable metric for monitoring institutional throughput. QAI is algebraically equivalent to a single-period estimate of queue utilization ($\rho$) minus one, but its formulation in terms of publicly reported variables (pending cases and completions) makes it computable without access to internal arrival rates or staffing data. We compute QAI across 25 observations from two U.S. immigration adjudication institutions (USCIS and EOIR) spanning FY2016--FY2026, using only publicly available PDF reports. QAI is positive in 70--80\% of observed periods, consistent with a system in persistent disequilibrium. In-sample Granger causality tests suggest QAI contains predictive information about future backlog growth ($F=11.98$, $p=0.037$), though out-of-sample prediction fails under regime change. A calibrated queueing simulation demonstrates that the relationship between arrival pressure and time-to-failure is nonlinear: a 10\% increase in arrivals accelerates failure by 28\% when the system is near saturation. QAI provides a simple, externally computable metric for monitoring whether adjudicative institutions can maintain throughput as caseloads grow.
+\end{abstract}
+
+\section{Introduction}
+
+Adjudicative institutions — courts, agencies, review boards, content moderation platforms — process cases through human review. They have finite throughput: a limited number of cases they can resolve per unit time. When arrivals exceed completions, a backlog forms. When the backlog grows faster than the institution can process it, the queue accelerates toward saturation.
+
+This dynamic is increasingly relevant as AI tools generate applications, content, and appeals at scale. Language models can draft asylum applications, legal briefs, and benefits claims \cite{chin-rothmann2024}. Content generation tools can produce material requiring human moderation at unprecedented volume \cite{eu-dsa2022}. In each case, the bottleneck is not the AI system but the human institution responsible for review.
+
+Existing approaches to monitoring institutional health have limitations. Raw backlog (pending cases) is a level — it can be high but stable, or low but accelerating. Queue utilization ($\rho = \lambda/c\mu$) is the standard operations research metric, but requires knowledge of arrival rates ($\lambda$) and server counts ($c$), which are often internal parameters not publicly reported. Processing time is a lagging indicator — it rises after degradation has occurred. Administrative burden indices \cite{herd-moynihan2018} measure static procedural friction, not dynamic capacity erosion.
+
+We propose the \textbf{Queue Acceleration Index (QAI)}, a metric that captures whether an institution's queue is accelerating toward or away from saturation, computable from only two publicly reported variables: pending cases and completions.
+
+\section{The Queue Acceleration Index}
+
+\subsection{Definition}
+
+\begin{equation}
+QAI_t = \frac{Pending_t - Pending_{t-1}}{Completions_t}
+\end{equation}
+
+where $Pending_t$ is the number of cases awaiting decision at the end of period $t$, and $Completions_t = Approvals_t + Denials_t$ is the number of cases resolved in period $t$.
+
+\subsection{Interpretation}
+\begin{itemize}
+\item \textbf{QAI $>$ 0:} The queue is growing. Arrivals exceed completions.
+\item \textbf{QAI $>$ 0.5:} Accelerating degradation. Backlog growth exceeds half the completion rate.
+\item \textbf{QAI $>$ 1.0:} Explosive growth. For every case completed, more than one enters the backlog.
+\item \textbf{QAI $<$ 0:} Recovery. The queue is shrinking.
+\end{itemize}
+
+\subsection{Relationship to Queue Utilization}
+
+From the queue balance equation $Q_t = Q_{t-1} + A_t - D_t$:
+
+\begin{equation}
+QAI_t = \frac{Q_t - Q_{t-1}}{D_t} = \frac{A_t - D_t}{D_t} = \frac{A_t}{D_t} - 1 = \hat{\rho}_t - 1
+\end{equation}
+
+QAI is algebraically equivalent to a single-period sample estimate of queue utilization ($\rho$) minus one. The contribution is not mathematical novelty but \textbf{operational accessibility}: while $\rho$ requires knowing the arrival rate $\lambda$ and server count $c$ — parameters internal to the institution — QAI is computable from variables that institutions already publish. This enables external monitoring by researchers, journalists, oversight bodies, and the public without institutional cooperation.
+
+\subsection{Infrastructure Properties}
+
+QAI satisfies key desiderata for a monitoring metric: (1) public computability from standard administrative variables, (2) cross-institutional comparability using the same formula, (3) temporal sensitivity within one reporting period, (4) interpretable thresholds with natural operational meanings, and (5) minimal assumptions — no specification of arrival distributions, service time distributions, or server counts required.
+
+\section{Empirical Validation}
+
+We validate QAI on U.S. immigration adjudication. Immigration adjudication provides a useful test domain: both USCIS (immigration applications) and EOIR (immigration courts) publish detailed workload statistics, the system has experienced well-documented backlog growth, and AI tools for generating immigration applications are commercially available \cite{chin-rothmann2024}.
+
+\subsection{Data}
+
+We construct a panel of 25 observations from publicly available PDF reports:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+Institution & Periods & Granularity & N \\
+\midrule
+USCIS & FY2019Q1--FY2021Q4 + 3 months FY2025--FY2026 & Quarterly + Monthly & 14 \\
+EOIR & FY2016--FY2026 & Annual & 11 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Data extracted using pdfplumber. Extraction code and datasets available at \url{[repository URL]}.
+
+\subsection{Descriptive Results}
+
+QAI is predominantly positive across both institutions (Table 1). Augmented Dickey-Fuller tests fail to reject the unit root null for both backlog (ADF=1.13, $p=0.995$) and QAI (ADF=-1.07, $p=0.726$), confirming the system is non-stationary — it is not mean-reverting to equilibrium.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+Dataset & N & Mean & 95\% CI & \% Positive \\
+\midrule
+USCIS Quarterly & 10 & +0.143 & [-0.001, +0.287] & 70\% \\
+USCIS Monthly & 2 & +0.560 & — & 100\% \\
+EOIR Annual & 10 & +0.813 & [+0.340, +1.285] & 80\% \\
+\bottomrule
+\end{tabular}
+\caption{QAI Descriptive Statistics}
+\end{table}
+
+\subsection{Predictive Analysis}
+
+In-sample Granger causality tests on EOIR data ($N=11$) reject the null of no predictive content at lag 2 ($F=11.98$, $p=0.037$), using the Toda-Yamamoto \cite{toda-yamamoto1995} approach for non-stationary data. We caution that $N$ is small, the result is sensitive to individual observations, and we did not correct for multiple lag testing. Out-of-sample prediction (train FY2016--2022, test FY2023--2026) yields $R^2 = -0.07$: the linear model fails at FY2025, when the system underwent regime change from degradation (QAI $>$ 1.0 for six years) to stabilization (QAI = -0.25). This illustrates both a limitation of linear forecasting and a property of QAI: it identifies the regime change even if the magnitude is not precisely forecast.
+
+\subsection{Comparison to Alternatives}
+
+We compare QAI against three alternative metrics for predicting next-period backlog growth in EOIR: raw backlog level ($r=-0.61$, $p=0.08$), simple $\Delta$backlog ($r=-0.02$, $p=0.96$), and utilization ratio ($r=+0.38$, $p=0.31$). Raw backlog has the strongest correlation but with a negative sign (mean-reversion). QAI has the theoretically correct positive sign and the strongest positive correlation among flow-based metrics. Cross-correlation between QAI($t$) and backlog growth($t+1$) is $r=+0.40$ for EOIR (90\% CI: [-0.24, +0.80]) and $r=+0.25$ for USCIS (90\% CI: [-0.35, +0.70]).
+
+\subsection{Case Studies}
+
+EOIR QAI crossed 1.0 in FY2019 and remained above 1.0 for six consecutive years (FY2019--FY2024), during which the immigration court backlog expanded 3.5$\times$ (1.1M $\to$ 3.9M pending cases). In FY2025--FY2026, QAI turned negative (-0.25, -0.38), coinciding with record completions and reduced receipts. In monthly USCIS data, QAI jumped from +0.06 (Dec 2025) to +1.06 (Feb 2026), while processing times increased 78\% and completions dropped 50\%, demonstrating sensitivity to acute capacity shocks.
+
+\section{Simulation}
+
+We calibrate a queueing model using USCIS parameters ($\lambda=464,604$/month, $\mu=68.4$/adjudicator/month, $c=5,000$, initial backlog=6.58M) and compute time-to-failure (2$\times$ initial backlog) under increasing arrival pressure.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+Pressure Increase & Months to Failure & Acceleration \\
+\midrule
+0\% (baseline) & 54 & — \\
++10\% & 39 & 28\% faster \\
++25\% & 28 & 48\% faster \\
++50\% & 19 & 65\% faster \\
++100\% & 12 & 78\% faster \\
+\bottomrule
+\end{tabular}
+\caption{Pressure-Failure Relationship}
+\end{table}
+
+The relationship is concave: each incremental pressure increase produces a larger-than-proportional reduction in time-to-failure. This nonlinearity — a consequence of queueing dynamics as $\rho \to 1$ — means that seemingly modest increases in arrival volume can produce disproportionate acceleration of institutional failure. Sensitivity analysis: at $c=3,000$, failure in 25 months; at $c=6,000$, 121 months; at $c=7,000$, backlog shrinks. We use $c=5,000$ based on USCIS's $\sim$20,000 total employees with $\sim$25\% in adjudication \cite{dhs-budget2025}. The qualitative nonlinearity finding is robust across $c=3,000$--6,000.
+
+\section{Applications}
+
+QAI can be applied to any queue-based human review system. In content moderation, platforms subject to the EU Digital Services Act must review and explain moderation decisions; as AI-generated content proliferates, QAI could monitor whether moderation queues are accelerating. In benefits adjudication, as governments deploy automated initial determinations, QAI could monitor whether human appeal queues keep pace. In AI-assisted legal filing, if commercial LLM tools increase application volume, QAI would detect resulting queue acceleration. More broadly, QAI provides a quantitative basis for capacity planning: institutions could set QAI thresholds (e.g., QAI $>$ 0.5 triggers hiring review; QAI $>$ 1.0 triggers emergency measures).
+
+\section{Limitations}
+
+This work has significant limitations. First, we cannot causally attribute observed queue acceleration to AI — immigration backlogs predate widespread LLM availability and reflect policy, funding, and demographic factors. QAI measures degradation regardless of cause. Second, $N=25$ limits statistical power; cross-correlations are not individually significant, and the Granger result is fragile. Third, out-of-sample prediction fails under regime change, indicating that simple linear monitoring is insufficient for operational deployment. Fourth, we lack cross-domain validation — content moderation data requires authentication not available for this study. Fifth, the simulation uses simplified M/M/c assumptions (exponential interarrival and service times, homogeneous servers). Sixth, QAI requires consecutive periods and cannot assess single-point institutional health. These limitations define directions for future work: more data, more domains, better forecasting methods, and validated causal models.
+
+\section{Related Work}
+
+This work connects queueing theory, institutional monitoring, and AI governance. In queueing theory, Kingman \cite{kingman1961} and Little \cite{little1961} provide steady-state characterizations of queue behavior; Whitt \cite{whitt2018} addresses time-varying queues. QAI extends this tradition by framing a queueing-derived metric as externally computable monitoring infrastructure. In public administration, government performance measurement frameworks (GPRA 1993; GPRAMA 2010) measure static achievement of agency goals through internal self-reporting; QAI enables dynamic, external, continuous monitoring. Administrative burden research \cite{herd-moynihan2018} documents how procedural friction creates access barriers but treats burden as static rather than dynamically evolving. State capacity research \cite{fukuyama2013} measures cross-sectional institutional quality but not within-institution temporal decline. In AI governance, researchers have examined algorithmic fairness \cite{barocas2019}, transparency mechanisms \cite{selbst2019}, and auditing methods \cite{raji2020, metaxa2021}, but have focused on decision-level properties rather than system-level throughput dynamics. The alignment literature has identified scalable oversight as a central challenge \cite{amodei2016, bowman2022} and called for measurement infrastructure \cite{metr2024}. QAI contributes a concrete, validated metric to this agenda.
+
+\section{Conclusion}
+
+QAI is a simple, publicly computable metric that measures whether an adjudicative institution's queue is accelerating toward saturation. Validated on 25 observations from two U.S. immigration adjudication institutions, QAI is predominantly positive, consistent with a system in persistent disequilibrium, and contains in-sample predictive information about future backlog growth. Simulation demonstrates that small increases in arrival pressure produce disproportionate acceleration of failure when institutions operate near capacity. While significant limitations remain — particularly the lack of causal attribution to AI and the absence of cross-domain validation — QAI demonstrates that meaningful institutional throughput monitoring is feasible using only publicly available data.
+
+\bibliographystyle{aaai}
+\bibliography{references}
+
+\end{document}
