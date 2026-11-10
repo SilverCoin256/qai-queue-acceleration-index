@@ -1,6 +1,6 @@
 # Queue Acceleration Index (QAI)
 
-Simple metric to check if government backlogs are getting worse or better.
+The Queue Acceleration Index compares the change in pending cases with the number of cases completed in the same period. This repository applies it to USCIS and EOIR data.
 
 ## What is QAI?
 
@@ -8,11 +8,7 @@ Simple metric to check if government backlogs are getting worse or better.
 QAI = (Pending_t - Pending_{t-1}) / Completions_t
 ```
 
-Basically: how fast is the backlog growing compared to how fast cases are getting done?
-
-- QAI > 0: backlog growing
-- QAI > 1: backlog growing faster than cases being resolved (bad)
-- QAI < 0: backlog shrinking (good)
+A value of 0 means the backlog stayed the same. Positive values indicate growth. For example, 1.2 means the backlog grew by 1.2 cases per completed case. Negative values indicate a shrinking backlog. The ratio requires a positive number of completions.
 
 ## Files
 
@@ -69,16 +65,7 @@ pdflatex paper_aaii_template.tex
 
 ## Citation
 
-If you use this, please cite:
-
-```
-@article{qai-aaai2027,
-  title={The Queue Acceleration Index: Measuring Institutional Throughput from Public Data},
-  author={Author Name},
-  journal={AAAI-27 Student Abstract},
-  year={2027}
-}
-```
+The working title is *The Queue Acceleration Index: Measuring Institutional Throughput from Public Data*. See the [manuscript source](paper/paper_aaii_template.tex).
 
 ## License
 
@@ -86,4 +73,4 @@ MIT
 
 ## Questions
 
-Open an issue on GitHub or email me at [email@example.com]
+Open an issue on GitHub.
